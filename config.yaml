@@ -1,0 +1,29 @@
+# tree_command config.yaml
+# Loaded relative to this script's own location, so `tree` behaves the
+# same no matter what directory you invoke it from.
+# CLI flags override these values for a single invocation.
+
+style: boxed              # "boxed" | "indented"
+scope: files               # "files" | "code"
+
+max_depth: 3                 # directory depth cap (0 = root only). Applies to both
+                              # styles since both render off one scanned tree; primarily
+                              # exists to keep "boxed" diagrams from exploding in width.
+                              # Override per-run with -d/--depth.
+
+color: true                   # ANSI color on/off. Override with --no-color.
+respect_gitignore: true        # honor .gitignore files found under the scanned path.
+show_hidden: false               # show dotfiles/dotdirs (other than .git, always skipped).
+
+always_skip:                      # skipped regardless of gitignore/show_hidden/--all
+  - .git
+
+colors:                            # color name per category (used when color: true)
+  directory: blue
+  python: green
+  markdown: yellow
+  config: magenta                    # .yaml/.yml/.json/.toml/.ini/.cfg
+  function: cyan                       # code-scope function nodes
+  class: magenta                        # code-scope class nodes
+  import: dim                            # code-scope import nodes
+  default: white
