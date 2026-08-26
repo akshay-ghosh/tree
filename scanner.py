@@ -43,7 +43,7 @@ def _scan_dir(
     dir_path: Path,
     depth: int,
     *,
-    max_depth: int,
+    max_depth: int | None,
     respect_gitignore: bool,
     show_hidden: bool,
     always_skip: set[str],
@@ -73,7 +73,7 @@ def _scan_dir(
             continue
 
         node = Node(name=entry.name, path=entry, is_dir=is_dir, kind="dir" if is_dir else "file", depth=depth)
-        if is_dir and depth < max_depth:
+        if is_dir and (max_depth is None or depth < max_depth):
             node.children = _scan_dir(
                 entry,
                 depth + 1,
@@ -91,14 +91,14 @@ def _scan_dir(
 def build_tree(
     root: Path,
     *,
-    max_depth: int,
+    max_depth: int | None,
     respect_gitignore: bool,
     show_hidden: bool,
     always_skip: list[str],
 ) -> Node:
     skip_set = set(always_skip)
     root_node = Node(name=root.name or str(root), path=root, is_dir=True, kind="dir", depth=0)
-    if max_depth >= 1:
+    if max_depth is None or max_depth >= 1:
         root_node.children = _scan_dir(
             root,
             1,

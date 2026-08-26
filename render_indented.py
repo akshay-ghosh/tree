@@ -9,17 +9,17 @@ def _label(node) -> str:
     return node.name + "/" if node.kind == "dir" else node.name
 
 
-def render(root, *, color_enabled: bool, config: dict) -> str:
-    lines: list[str] = [colorize(_label(root), color_for(root, config), color_enabled)]
-    _render_children(root, "", lines, color_enabled=color_enabled, config=config)
-    return "\n".join(lines)
-
-
-def _render_children(node, prefix: str, lines: list[str], *, color_enabled: bool, config: dict) -> None:
+def iter_rows(node, prefix: str = "", is_last: bool = True, is_root: bool = True):
+    """Yields (prefix_including_connector, node) for every node in display order."""
+    yield ("" if is_root else prefix + ("└── " if is_last else "├── ")), node
     children = node.children
+    child_prefix = prefix if is_root else prefix + ("    " if is_last else "│   ")
     for i, child in enumerate(children):
-        is_last = i == len(children) - 1
-        connector = "└── " if is_last else "├── "
-        lines.append(prefix + connector + colorize(_label(child), color_for(child, config), color_enabled))
-        child_prefix = prefix + ("    " if is_last else "│   ")
-        _render_children(child, child_prefix, lines, color_enabled=color_enabled, config=config)
+        yield from iter_rows(child, child_prefix, i == len(children) - 1, False)
+
+
+def render(root, *, color_enabled: bool, config: dict) -> str:
+    lines = [
+        prefix + colorize(_label(node), color_for(node, config), color_enabled) for prefix, node in iter_rows(root)
+    ]
+    return "\n".join(lines)

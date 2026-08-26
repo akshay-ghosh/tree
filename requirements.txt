@@ -1,2 +1,3 @@
 pyyaml>=6.0
 pathspec>=0.12
+reportlab>=4.0
