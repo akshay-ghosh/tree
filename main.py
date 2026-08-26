@@ -10,6 +10,7 @@ from pathlib import Path
 import ast_scope
 import render_boxed
 import render_indented
+import render_pdf
 from config import load_config
 from scanner import build_tree
 
@@ -22,11 +23,19 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("-d", "--depth", type=int, default=None, help="max directory depth")
     parser.add_argument("--no-color", action="store_true", help="disable ANSI color output")
     parser.add_argument("--all", action="store_true", help="ignore .gitignore and show hidden files")
+    parser.add_argument("-s", "--save", action="store_true", help="save the diagram as a PDF instead of printing")
+    parser.add_argument(
+        "-p",
+        "--print",
+        action="store_true",
+        dest="print_flag",
+        help="also print to the terminal when saving (printing already happens by default without --save)",
+    )
     return parser.parse_args(argv)
 
 
-def _attach_code_scope(node, max_depth: int) -> None:
-    if node.kind == "file" and node.path.suffix == ".py" and node.depth < max_depth:
+def _attach_code_scope(node, max_depth: int | None) -> None:
+    if node.kind == "file" and node.path.suffix == ".py" and (max_depth is None or node.depth < max_depth):
         node.children = ast_scope.extract_python_members(node.path, node.depth + 1)
     for child in node.children:
         _attach_code_scope(child, max_depth)
@@ -38,7 +47,9 @@ def main(argv: list[str] | None = None) -> int:
 
     style = args.style or config["style"]
     scope = args.scope or config["scope"]
-    depth = args.depth if args.depth is not None else config["max_depth"]
+    save = args.save
+    print_enabled = args.print_flag or not save
+    depth = args.depth if args.depth is not None else (None if save else config["max_depth"])
     color_enabled = config["color"] and not args.no_color
     respect_gitignore = config["respect_gitignore"] and not args.all
     show_hidden = config["show_hidden"] or args.all
@@ -60,12 +71,18 @@ def main(argv: list[str] | None = None) -> int:
         if scope == "code":
             _attach_code_scope(tree, depth)
 
-        if style == "boxed":
-            output = render_boxed.render(tree, color_enabled=color_enabled, config=config)
-        else:
-            output = render_indented.render(tree, color_enabled=color_enabled, config=config)
+        if print_enabled:
+            if style == "boxed":
+                output = render_boxed.render(tree, color_enabled=color_enabled, config=config)
+            else:
+                output = render_indented.render(tree, color_enabled=color_enabled, config=config)
+            print(output)
 
-        print(output)
+        if save:
+            pdf_path = Path.cwd() / f"{root_path.name}_tree.pdf"
+            render_pdf.save(tree, pdf_path, style=style, color_enabled=color_enabled, config=config)
+            print(f"Saved to {pdf_path}")
+
         return 0
     except Exception as e:  # personal CLI tool: one friendly failure mode is enough
         print(f"tree: {e}", file=sys.stderr)
