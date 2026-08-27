@@ -19,6 +19,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog="tree", description="Print a diagram of a directory's structure.")
     parser.add_argument("path", nargs="?", default=".", help="directory to scan (default: current directory)")
     parser.add_argument("--style", choices=["boxed", "indented"], default=None, help="rendering style")
+    parser.add_argument(
+        "-i",
+        dest="style",
+        action="store_const",
+        const="indented",
+        help="shortcut for --style indented",
+    )
     parser.add_argument("--scope", choices=["files", "code"], default=None, help="node scope")
     parser.add_argument("-d", "--depth", type=int, default=None, help="max directory depth")
     parser.add_argument("--no-color", action="store_true", help="disable ANSI color output")
