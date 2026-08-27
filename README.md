@@ -22,11 +22,12 @@ that, just run `tree` from any directory.
 ## Usage
 
 ```
-tree [path] [--style boxed|indented] [--scope files|code] [-d N]
+tree [path] [--style boxed|indented] [-i] [--scope files|code] [-d N]
      [--no-color] [--all] [-s|--save] [-p|--print]
 ```
 
 - `--style boxed|indented` — box diagram (default) or classic `├──` tree.
+- `-i` — shorthand for `--style indented`.
 - `--scope files|code` — plain file/folder hierarchy (default), or also
   show each `.py` file's top-level functions/classes/imports.
 - `-d N` — cap directory depth (default: 3 when printing).
